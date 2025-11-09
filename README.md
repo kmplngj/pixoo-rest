@@ -124,19 +124,34 @@ or
 
 ### Direct
 
-Create a virtual environment and activate it (optional; but recommended):
+This project uses [uv](https://docs.astral.sh/uv/) for fast and modern Python dependency management.
+
+Install uv if you haven't already:
+```bash
+curl -LsSf https://astral.sh/uv/install.sh | sh
+```
+
+Sync dependencies and create virtual environment:
+```bash
+uv sync
+```
+
+Run the app with uv:
+```bash
+uv run python app.py
+```
+
+Or activate the virtual environment and run directly:
+```bash
+source .venv/bin/activate  # On Windows: .venv\Scripts\activate
+python app.py
+```
+
+**Legacy method (still supported):**
 ```bash
 python3 -m venv venv
 . venv/bin/activate
-```
-
-Install all dependencies:
-```bash
-pip install -r requirements.txt
-```
-
-Finally, run the app:
-```bash
+pip install -r requirements.txt  # Or: pip install -e .
 python app.py
 ```
 

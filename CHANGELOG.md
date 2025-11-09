@@ -1,6 +1,36 @@
 # Changelog
 
-## 1.6.0  (2024-08-28)
+All notable changes to this project will be documented in this file.
+
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [1.7.0] - 2025-11-09
+
+### Added
+- Modern `pyproject.toml` with PEP 621 compliant metadata
+- Support for `uv` package manager for faster dependency resolution
+- `agents.md` documentation for AI-assisted development workflow
+- Development dependencies group (pytest, black, ruff, mypy)
+- Proper project classifiers and URLs in package metadata
+- Enhanced `/image` endpoint that accepts both file uploads and image URLs
+
+### Changed
+- Migrated from `requirements.txt` to `pyproject.toml` for dependency management
+- Adopted Semantic Versioning 2.0.0
+- **BREAKING**: Updated minimum Python version requirement to `>=3.10` (required by pixoo dependency)
+- Improved project structure following modern Python standards
+- Updated CHANGELOG format to follow Keep a Changelog standard
+- Modernized Dockerfile to use Python 3.12 and uv package manager
+
+### Deprecated
+- `requirements.txt` (use `pyproject.toml` instead)
+- `version.txt` (version now managed in `pyproject.toml`)
+
+### Removed
+- Legacy `requirements.txt` workflow in favor of `pyproject.toml`
+
+## [1.6.0] - 2024-08-28
 
 * removed `pixoo` as git-submodule; now added via PyPi package
 * other dependencies updated
