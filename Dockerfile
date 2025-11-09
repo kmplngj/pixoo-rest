@@ -19,12 +19,10 @@ COPY README.md .
 # Install dependencies using uv
 RUN uv pip install --system --no-cache -r pyproject.toml
 
-# Copy application files
-COPY swag swag/
-COPY _helpers.py .
-COPY app.py .
+# Copy application source code
+COPY src/ src/
 
 HEALTHCHECK --interval=5m --timeout=3s \
     CMD curl --fail --silent http://localhost:5000/${SCRIPT_NAME}/health || exit 1
 
-CMD [ "gunicorn", "--bind", "0.0.0.0:5000", "app:app" ]
+CMD [ "gunicorn", "--bind", "0.0.0.0:5000", "--pythonpath", "src", "pixoo_rest.main:app" ]

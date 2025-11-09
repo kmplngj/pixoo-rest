@@ -460,9 +460,14 @@ def divoom_get_dial_list():
     ).json()
 
 
-if __name__ == '__main__':
+def main():
+    """Entry point for the application."""
     app.run(
         debug=utils.parse_bool_value(os.environ.get('PIXOO_REST_DEBUG', 'false')),
         host=os.environ.get('PIXOO_REST_HOST', '127.0.0.1'),
         port=os.environ.get('PIXOO_REST_PORT', '5000')
     )
+
+
+if __name__ == '__main__':
+    main()

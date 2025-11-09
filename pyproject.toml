@@ -46,6 +46,9 @@ Repository = "https://github.com/kmplngj/pixoo-rest"
 "Bug Tracker" = "https://github.com/kmplngj/pixoo-rest/issues"
 Changelog = "https://github.com/kmplngj/pixoo-rest/blob/master/CHANGELOG.md"
 
+[project.scripts]
+pixoo-rest = "pixoo_rest.main:main"
+
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
