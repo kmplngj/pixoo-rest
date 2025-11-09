@@ -14,7 +14,7 @@ However, `pixoo-rest` still offers unique features like ...
 * built-in Swagger UI
 * "pass through" endpoints (with example payloads and detailed descriptions)
 * (pre-built) container image
-* Helm chart
+* modern Python tooling with uv
 * etc.
 
 So... I'll keep maintaining the project as long as there's enough interest.
@@ -85,7 +85,7 @@ cd pixoo-rest
 
 ### Configure
 
-Create an `.env`-file alongside the [app.py](app.py)-file / [docker-compose.yml](docker-compose.yml)-file and put your individual settings in it; like so:
+Create an `.env`-file alongside the [app.py](app.py)-file / [compose.yml](compose.yml)-file and put your individual settings in it; like so:
 ```properties
 # MANDATORY: the hostname of your Pixoo device; defaults to "Pixoo64" if omitted
 PIXOO_HOST=192.168.178.11
@@ -167,15 +167,13 @@ docker compose up
 
 If you don't want to build the container image yourself, you now can use the pre-built image from [hub.docker.com](https://hub.docker.com/r/4ch1m/pixoo-rest).
 
-Simply uncomment the `image`-attribute in [docker-compose.yml](docker-compose.yml), and comment out the `build`-attribute:
+Simply uncomment the `image`-attribute in [compose.yml](compose.yml), and comment out the `build`-attribute:
 
 ```yaml
   app:
     image: 4ch1m/pixoo-rest:latest
     #build: .
 ```
-
-There's also a [Helm chart](helm) you can use for deployments to [K8s](https://kubernetes.io/).
 
 ## Usage
 

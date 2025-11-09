@@ -29,6 +29,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 - Legacy `requirements.txt` workflow in favor of `pyproject.toml`
+- Helm chart directory (no longer supported)
+- Renamed `docker-compose.yml` to `compose.yml` (modern Docker Compose naming)
 
 ## [1.6.0] - 2024-08-28
 
