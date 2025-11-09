@@ -1,13 +1,14 @@
 import os
+import sys
 import time
 import requests
 import json
 import base64
 
 from dotenv import load_dotenv
-from flask import Flask, request, redirect
+from flask import Flask, request, redirect, url_for
 from flasgger import Swagger, swag_from
-from pixoo.pixoo import Channel, Pixoo
+from pixoo import Channel, Pixoo
 from PIL import Image
 
 from swag import definitions
@@ -20,9 +21,16 @@ load_dotenv()
 pixoo_host = os.environ.get('PIXOO_HOST', 'Pixoo64')
 pixoo_screen = int(os.environ.get('PIXOO_SCREEN_SIZE', 64))
 pixoo_debug = _helpers.parse_bool_value(os.environ.get('PIXOO_DEBUG', 'false'))
+pixoo_test_connection_retries = int(os.environ.get('PIXOO_TEST_CONNECTION_RETRIES', sys.maxsize))
 
-while not _helpers.try_to_request(f'http://{pixoo_host}/get'):
-    time.sleep(30)
+for connection_test_count in range(pixoo_test_connection_retries + 1):
+    if _helpers.try_to_request(f'http://{pixoo_host}/get'):
+        break
+    else:
+        if connection_test_count == pixoo_test_connection_retries:
+            sys.exit(f'Failed to connect to [{pixoo_host}]. Exiting.')
+        else:
+            time.sleep(30)
 
 pixoo = Pixoo(
     pixoo_host,
@@ -44,7 +52,12 @@ def _push_immediately(_request):
 
 @app.route('/', methods=['GET'])
 def home():
-    return redirect('/apidocs')
+    return redirect(url_for('flasgger.apidocs'))
+
+
+@app.route('/health', methods=['GET'])
+def health():
+    return 'OK'
 
 
 @app.route('/brightness/<int:percentage>', methods=['PUT'])
@@ -222,24 +235,24 @@ def send_text():
         request.form.get('text'),
         (int(request.form.get('x')), int(request.form.get('y'))),
         (int(request.form.get('r')), int(request.form.get('g')), int(request.form.get('b'))),
-        (int(request.form.get('identifier'))),
-        (int(request.form.get('font'))),
-        (int(request.form.get('width'))),
-        (int(request.form.get('movement_speed'))),
-        (int(request.form.get('direction')))
+        int(request.form.get('identifier')),
+        int(request.form.get('font')),
+        int(request.form.get('text_width')),
+        int(request.form.get('scroll_speed')),
+        int(request.form.get('scroll_direction'))
     )
 
     return 'OK'
 
 
 def _reset_gif():
-    return requests.post(f'http://{pixoo.address}/post', json.dumps({
+    return requests.post(f'http://{pixoo.ip_address}/post', json.dumps({
         "Command": "Draw/ResetHttpGifId"
     })).json()
 
 
 def _send_gif(num, offset, width, speed, data):
-    return requests.post(f'http://{pixoo.address}/post', json.dumps({
+    return requests.post(f'http://{pixoo.ip_address}/post', json.dumps({
         "Command": "Draw/SendHttpGif",
         "PicID": 1,
         "PicNum": num,
@@ -266,20 +279,26 @@ def send_gif(gif=None, speed=None, skip_first_frame=None):
     if gif.is_animated:
         _reset_gif()
 
-        for i in range(1 if skip_first_frame else 0, gif.n_frames):
+        gif_frames = []
+
+        for i in range((1 if skip_first_frame else 0), gif.n_frames):
+            if len(gif_frames) == 59:
+                break
+
             gif.seek(i)
 
             if gif.size not in ((16, 16), (32, 32), (64, 64)):
-                gif_frame = gif.resize((pixoo.size, pixoo.size)).convert("RGB")
+                gif_frames.append(gif.resize((pixoo.size, pixoo.size)).convert("RGB"))
             else:
-                gif_frame = gif.convert("RGB")
+                gif_frames.append(gif.convert("RGB"))
 
+        for offset, gif_frame in enumerate(gif_frames):
             _send_gif(
-                gif.n_frames + (-1 if skip_first_frame else 0),
-                i + (-1 if skip_first_frame else 0),
-                gif_frame.width,
-                speed,
-                base64.b64encode(gif_frame.tobytes()).decode("utf-8")
+                num=len(gif_frames),
+                offset=offset,
+                width=gif_frame.width,
+                speed=speed,
+                data=base64.b64encode(gif_frame.tobytes()).decode("utf-8")
             )
     else:
         pixoo.draw_image(gif)
@@ -293,7 +312,7 @@ def send_gif(gif=None, speed=None, skip_first_frame=None):
 def download_gif():
     try:
         response = requests.get(
-            request.form.get('url'),
+            url=request.form.get('url'),
             stream=True,
             timeout=int(request.form.get('timeout')),
             verify=_helpers.parse_bool_value(request.form.get('ssl_verify', default=True))
@@ -302,9 +321,9 @@ def download_gif():
         response.raise_for_status()
 
         send_gif(
-            Image.open(response.raw),
-            int(request.form.get('speed')),
-            _helpers.parse_bool_value(request.form.get('skip_first_frame', default=False))
+            gif=Image.open(response.raw),
+            speed=int(request.form.get('speed')),
+            skip_first_frame=_helpers.parse_bool_value(request.form.get('skip_first_frame', default=False))
         )
     except (requests.exceptions.RequestException, OSError, IOError) as e:
         return f'Error downloading the GIF: {e}', 400
@@ -317,7 +336,7 @@ def download_gif():
 def download_image():
     try:
         response = requests.get(
-            request.form.get('url'),
+            url=request.form.get('url'),
             stream=True,
             timeout=int(request.form.get('timeout')),
             verify=_helpers.parse_bool_value(request.form.get('ssl_verify', default=True))
@@ -336,6 +355,35 @@ def download_image():
         return f'Error downloading the image: {e}', 400
 
     return 'OK'
+
+
+@app.route('/download/text', methods=['POST'])
+@swag_from('swag/download/text.yml')
+def text_from_url():
+    return requests.post(f'http://{pixoo.ip_address}/post', json.dumps({
+        "Command": "Draw/SendHttpItemList",
+        "ItemList": [
+            {
+                "type": 23,
+                "TextId": int(request.form.get('id')),
+                "TextString": request.form.get('url'),
+                "x": int(request.form.get('x')),
+                "y": int(request.form.get('y')),
+                "dir": int(request.form.get('scroll_direction')),
+                "font": 4,
+                "TextWidth": int(request.form.get('text_width')),
+                "Textheight": int(request.form.get('text_height')),
+                "speed": int(request.form.get('scroll_speed')),
+                "update_time": int(request.form.get('update_interval')),
+                "align": int(request.form.get('horizontal_alignment')),
+                "color": '#{:02x}{:02x}{:02x}'.format(
+                    int(request.form.get('r')),
+                    int(request.form.get('g')),
+                    int(request.form.get('b'))
+                )
+            }
+        ]
+    })).json()
 
 
 passthrough_routes = {
@@ -372,11 +420,12 @@ passthrough_routes = {
     '/passthrough/draw/clearHttpText': passthrough.create(*passthrough.draw_clear_http_text),
     '/passthrough/draw/sendHttpGif': passthrough.create(*passthrough.draw_send_http_gif),
     '/passthrough/draw/resetHttpGifId': passthrough.create(*passthrough.draw_reset_http_gif_id),
+    '/passthrough/draw/sendHttpItemList': passthrough.create(*passthrough.draw_send_http_item_list)
 }
 
 
 def _passthrough_request(passthrough_request):
-    return requests.post(f'http://{pixoo.address}/post', json.dumps(passthrough_request.json)).json()
+    return requests.post(f'http://{pixoo.ip_address}/post', json.dumps(passthrough_request.json)).json()
 
 
 for _route, _swag in passthrough_routes.items():
@@ -418,4 +467,3 @@ if __name__ == '__main__':
         host=os.environ.get('PIXOO_REST_HOST', '127.0.0.1'),
         port=os.environ.get('PIXOO_REST_PORT', '5000')
     )
-
