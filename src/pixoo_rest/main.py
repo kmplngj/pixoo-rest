@@ -11,20 +11,19 @@ from flasgger import Swagger, swag_from
 from pixoo import Channel, Pixoo
 from PIL import Image
 
-from swag import definitions
-from swag import passthrough
-
-import _helpers
+from pixoo_rest.swagger_specs import definitions
+from pixoo_rest.swagger_specs import passthrough
+from pixoo_rest import utils
 
 load_dotenv()
 
 pixoo_host = os.environ.get('PIXOO_HOST', 'Pixoo64')
 pixoo_screen = int(os.environ.get('PIXOO_SCREEN_SIZE', 64))
-pixoo_debug = _helpers.parse_bool_value(os.environ.get('PIXOO_DEBUG', 'false'))
+pixoo_debug = utils.parse_bool_value(os.environ.get('PIXOO_DEBUG', 'false'))
 pixoo_test_connection_retries = int(os.environ.get('PIXOO_TEST_CONNECTION_RETRIES', sys.maxsize))
 
 for connection_test_count in range(pixoo_test_connection_retries + 1):
-    if _helpers.try_to_request(f'http://{pixoo_host}/get'):
+    if utils.try_to_request(f'http://{pixoo_host}/get'):
         break
     else:
         if connection_test_count == pixoo_test_connection_retries:
@@ -39,14 +38,14 @@ pixoo = Pixoo(
 )
 
 app = Flask(__name__)
-app.config['SWAGGER'] = _helpers.get_swagger_config()
+app.config['SWAGGER'] = utils.get_swagger_config()
 
-swagger = Swagger(app, template=_helpers.get_additional_swagger_template())
+swagger = Swagger(app, template=utils.get_additional_swagger_template())
 definitions.create(swagger)
 
 
 def _push_immediately(_request):
-    if _helpers.parse_bool_value(_request.form.get('push_immediately', default=True)):
+    if utils.parse_bool_value(_request.form.get('push_immediately', default=True)):
         pixoo.push()
 
 
@@ -90,7 +89,7 @@ def generic_set_number(number):
 @swag_from('swag/set/generic_boolean.yml')
 def generic_set_boolean(boolean):
     if request.path.startswith('/screen/on/'):
-        pixoo.set_screen(_helpers.parse_bool_value(boolean))
+        pixoo.set_screen(utils.parse_bool_value(boolean))
 
     return 'OK'
 
@@ -119,7 +118,7 @@ def image():
     # Check if the image is a GIF
     if image_file.format == 'GIF':
         speed = int(request.form.get('speed', default=100))
-        skip_first_frame = _helpers.parse_bool_value(request.form.get('skip_first_frame', default=False))
+        skip_first_frame = utils.parse_bool_value(request.form.get('skip_first_frame', default=False))
         # Call the 'send_gif()' function to draw GIF frames
         send_gif(image_file, speed, skip_first_frame)
     else:
@@ -274,7 +273,7 @@ def send_gif(gif=None, speed=None, skip_first_frame=None):
         speed = int(request.form.get('speed', default=100))
     
     if skip_first_frame is None:   
-        skip_first_frame = _helpers.parse_bool_value(request.form.get('skip_first_frame', default=False))
+        skip_first_frame = utils.parse_bool_value(request.form.get('skip_first_frame', default=False))
 
     if gif.is_animated:
         _reset_gif()
@@ -315,7 +314,7 @@ def download_gif():
             url=request.form.get('url'),
             stream=True,
             timeout=int(request.form.get('timeout')),
-            verify=_helpers.parse_bool_value(request.form.get('ssl_verify', default=True))
+            verify=utils.parse_bool_value(request.form.get('ssl_verify', default=True))
         )
 
         response.raise_for_status()
@@ -323,7 +322,7 @@ def download_gif():
         send_gif(
             gif=Image.open(response.raw),
             speed=int(request.form.get('speed')),
-            skip_first_frame=_helpers.parse_bool_value(request.form.get('skip_first_frame', default=False))
+            skip_first_frame=utils.parse_bool_value(request.form.get('skip_first_frame', default=False))
         )
     except (requests.exceptions.RequestException, OSError, IOError) as e:
         return f'Error downloading the GIF: {e}', 400
@@ -339,7 +338,7 @@ def download_image():
             url=request.form.get('url'),
             stream=True,
             timeout=int(request.form.get('timeout')),
-            verify=_helpers.parse_bool_value(request.form.get('ssl_verify', default=True))
+            verify=utils.parse_bool_value(request.form.get('ssl_verify', default=True))
         )
 
         response.raise_for_status()
@@ -440,19 +439,19 @@ def passthrough_{list(passthrough_routes.keys()).index(_route)}():
 @app.route('/divoom/device/lan', methods=['POST'])
 @swag_from('swag/divoom/device/return_same_lan_device.yml')
 def divoom_return_same_lan_device():
-    return _helpers.divoom_api_call('Device/ReturnSameLANDevice').json()
+    return utils.divoom_api_call('Device/ReturnSameLANDevice').json()
 
 
 @app.route('/divoom/channel/dial/types', methods=['POST'])
 @swag_from('swag/divoom/channel/get_dial_type.yml')
 def divoom_get_dial_type():
-    return _helpers.divoom_api_call('Channel/GetDialType').json()
+    return utils.divoom_api_call('Channel/GetDialType').json()
 
 
 @app.route('/divoom/channel/dial/list', methods=['POST'])
 @swag_from('swag/divoom/channel/get_dial_list.yml')
 def divoom_get_dial_list():
-    return _helpers.divoom_api_call(
+    return utils.divoom_api_call(
         'Channel/GetDialList',
         {
             'DialType': request.form.get('dial_type', default='Game'),
@@ -463,7 +462,7 @@ def divoom_get_dial_list():
 
 if __name__ == '__main__':
     app.run(
-        debug=_helpers.parse_bool_value(os.environ.get('PIXOO_REST_DEBUG', 'false')),
+        debug=utils.parse_bool_value(os.environ.get('PIXOO_REST_DEBUG', 'false')),
         host=os.environ.get('PIXOO_REST_HOST', '127.0.0.1'),
         port=os.environ.get('PIXOO_REST_PORT', '5000')
     )
