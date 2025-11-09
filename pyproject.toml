@@ -47,7 +47,7 @@ Repository = "https://github.com/kmplngj/pixoo-rest"
 Changelog = "https://github.com/kmplngj/pixoo-rest/blob/master/CHANGELOG.md"
 
 [project.scripts]
-pixoo-rest = "pixoo_rest.main:main"
+pixoo-rest = "pixoo_rest.app:main"
 
 [build-system]
 requires = ["hatchling"]
