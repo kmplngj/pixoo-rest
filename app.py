@@ -85,16 +85,36 @@ def generic_set_boolean(boolean):
 @app.route('/image', methods=['POST'])
 @swag_from('swag/draw/image.yml')
 def image():
-    pixoo.draw_image_at_location(
-        Image.open(request.files['image'].stream),
-        int(request.form.get('x')),
-        int(request.form.get('y'))
-    )
+    # Check if 'image' is uploaded as a file
+    if 'image' in request.files:
+        # Process the uploaded file
+        image_file = Image.open(request.files['image'].stream)
+    # Check if 'image' is a URL
+    elif 'image' in request.form and request.form['image'].startswith('http'):
+        url = request.form['image']
 
-    _push_immediately(request)
+        try:
+            response = requests.get(url, stream=True, timeout=30)
+            response.raise_for_status()
+            image_file = Image.open(response.raw)
+        except (requests.exceptions.RequestException, OSError, IOError) as e:
+            return f'Error downloading the image: {e}', 400
+
+    else:
+        return 'Invalid input for the "image" parameter', 400
+
+    # Check if the image is a GIF
+    if image_file.format == 'GIF':
+        speed = int(request.form.get('speed', default=100))
+        skip_first_frame = _helpers.parse_bool_value(request.form.get('skip_first_frame', default=False))
+        # Call the 'send_gif()' function to draw GIF frames
+        send_gif(image_file, speed, skip_first_frame)
+    else:
+        # Process the regular image file
+        pixoo.draw_image(image_file)
+        pixoo.push()
 
     return 'OK'
-
 
 @app.route('/text', methods=['POST'])
 @swag_from('swag/draw/text.yml')
@@ -111,7 +131,6 @@ def text():
     _push_immediately(request)
 
     return 'OK'
-
 
 @app.route('/fill', methods=['POST'])
 @swag_from('swag/draw/fill.yml')
@@ -231,7 +250,19 @@ def _send_gif(num, offset, width, speed, data):
     })).json()
 
 
-def _handle_gif(gif, speed, skip_first_frame):
+@app.route('/sendGif', methods=['POST'])
+@swag_from('swag/send/gif.yml')
+def send_gif(gif=None, speed=None, skip_first_frame=None):
+    # check if parameters where defined by the function call
+    if gif is None:
+        gif = Image.open(request.files['gif'].stream)
+    
+    if speed is None:
+        speed = int(request.form.get('speed', default=100))
+    
+    if skip_first_frame is None:   
+        skip_first_frame = _helpers.parse_bool_value(request.form.get('skip_first_frame', default=False))
+
     if gif.is_animated:
         _reset_gif()
 
@@ -254,20 +285,6 @@ def _handle_gif(gif, speed, skip_first_frame):
         pixoo.draw_image(gif)
         pixoo.push()
 
-
-@app.route('/sendGif', methods=['POST'])
-@swag_from('swag/send/gif.yml')
-def send_gif():
-    gif = Image.open(request.files['gif'].stream)
-    speed = int(request.form.get('speed'))
-    skip_first_frame = _helpers.parse_bool_value(request.form.get('skip_first_frame', default=False))
-
-    _handle_gif(
-        gif,
-        speed,
-        skip_first_frame
-    )
-
     return 'OK'
 
 
@@ -284,7 +301,7 @@ def download_gif():
 
         response.raise_for_status()
 
-        _handle_gif(
+        send_gif(
             Image.open(response.raw),
             int(request.form.get('speed')),
             _helpers.parse_bool_value(request.form.get('skip_first_frame', default=False))
