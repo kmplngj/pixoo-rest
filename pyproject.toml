@@ -24,12 +24,12 @@ classifiers = [
 
 dependencies = [
     "pixoo>=0.9.2",
-    "python-dotenv>=1.0.1",
-    "flask>=3.0.3",
-    "requests>=2.32.3",
     "pillow>=10.4.0",
-    "gunicorn>=23.0.0",
-    "flasgger>=0.9.7.2.dev2",
+    "fastapi>=0.115.0",
+    "uvicorn[standard]>=0.30.0",
+    "pydantic>=2.9.0",
+    "pydantic-settings>=2.5.0",
+    "niquests>=3.9.1",
 ]
 
 [project.optional-dependencies]
