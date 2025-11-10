@@ -6,7 +6,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from pixoo import Pixoo
 
-from pixoo_rest.api import download, draw, image, send, set as set_router
+from pixoo_rest.api import divoom, download, draw, image, send, set as set_router
 from pixoo_rest.core.config import settings
 from pixoo_rest.dependencies import set_pixoo_instance
 from pixoo_rest import utils
@@ -53,6 +53,7 @@ app.include_router(send.router)
 app.include_router(set_router.router)
 app.include_router(image.router)
 app.include_router(download.router)
+app.include_router(divoom.router)
 
 
 @app.get("/health")
