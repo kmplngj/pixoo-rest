@@ -118,13 +118,14 @@ async def draw_fill(request: DrawFillRequest):
 
 @router.post("/text", response_model=SuccessResponse)
 async def draw_text(request: DrawTextRequest):
-    """Draw text at the specified coordinates with the given color and font."""
+    """Draw text at the specified coordinates with the given color."""
     if pixoo is None:
         raise HTTPException(status_code=503, detail="Pixoo device not initialized")
 
     try:
+        # Note: pixoo library's draw_text_at_location_rgb doesn't support font parameter
         pixoo.draw_text_at_location_rgb(
-            request.text, request.x, request.y, request.r, request.g, request.b, request.font
+            request.text, request.x, request.y, request.r, request.g, request.b
         )
 
         if request.push_immediately:
