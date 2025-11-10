@@ -42,7 +42,7 @@ async def lifespan(app: FastAPI):
 # Create FastAPI app
 app = FastAPI(
     title="Pixoo REST API",
-    description="A RESTful API to easily interact with Wi-Fi enabled Divoom Pixoo devices",
+    description="A modern async RESTful API to interact with Wi-Fi enabled Divoom Pixoo devices",
     version="2.0.0",
     lifespan=lifespan,
 )
@@ -68,6 +68,7 @@ async def root():
     return {
         "name": "Pixoo REST API",
         "version": "2.0.0",
+        "description": "Modern async FastAPI application for Divoom Pixoo devices",
         "docs": "/docs",
         "redoc": "/redoc",
         "openapi": "/openapi.json",

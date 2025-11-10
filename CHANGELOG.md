@@ -5,6 +5,102 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.0] - 2025-11-10
+
+### 🎉 Major Rewrite - FastAPI Migration
+
+This release represents a complete rewrite of the application using **FastAPI** instead of Flask, bringing modern async capabilities, automatic API documentation, and improved performance.
+
+### Added
+- ⚡ **FastAPI framework** with full async/await support
+- 📝 **Automatic OpenAPI documentation** (Swagger UI at `/docs`, ReDoc at `/redoc`)
+- ✅ **Pydantic v2 validation** for all request/response models
+- 🔄 **Async HTTP calls** with httpx for better performance
+- 📦 **File upload support** for images and GIFs with FastAPI's UploadFile
+- 🌐 **URL download support** for images and GIFs with redirect following
+- 🏗️ **Dependency injection** pattern for cleaner code architecture
+- 🎯 **Type hints** throughout the codebase for better IDE support
+- 🔌 **Centralized dependencies** module for shared resources
+- 📊 **Structured logging** with connection status and health checks
+- 🎨 **Modern project structure** with src layout (`src/pixoo_rest/`)
+- ⚙️ **Pydantic Settings** for environment variable management
+- 🧪 **Better error handling** with proper exception chaining
+
+### Changed
+- **BREAKING**: Migrated from Flask to FastAPI
+- **BREAKING**: All endpoints now use JSON request bodies instead of form data (except file uploads)
+- **BREAKING**: Response format now follows FastAPI/Pydantic schema (status, message fields)
+- **BREAKING**: Minimum Python version now `>=3.10` (required for modern type hints)
+- **BREAKING**: Entry point changed from `app.py` to `pixoo-rest` command or `python -m pixoo_rest.app`
+- Reorganized code into modular routers (`draw`, `send`, `set`, `image`, `download`, `divoom`)
+- Improved configuration with Pydantic Settings and better environment variable handling
+- Enhanced GIF handling with async frame processing
+- Updated all dependencies to their latest versions
+- Modernized development workflow with uv package manager
+
+### Dependencies
+- Added: `fastapi>=0.115.0`
+- Added: `uvicorn[standard]>=0.30.0` (ASGI server)
+- Added: `pydantic>=2.9.0` (validation)
+- Added: `pydantic-settings>=2.5.0` (config management)
+- Added: `httpx>=0.28.0` (async HTTP client)
+- Added: `python-multipart>=0.0.20` (file upload support)
+- Removed: `flask` and related Flask dependencies
+- Removed: `flasgger` (replaced by FastAPI's built-in OpenAPI)
+- Removed: `requests` (replaced by async httpx)
+- Removed: `python-dotenv` (Pydantic Settings handles .env)
+
+### Migration Guide
+
+#### Environment Variables
+No changes to environment variable names - all existing `.env` files work as-is:
+- `PIXOO_HOST` - Device hostname or IP
+- `PIXOO_SCREEN_SIZE` - Screen size (16, 32, or 64)
+- `PIXOO_DEBUG` - Debug mode for pixoo library
+- `PIXOO_REST_HOST` - Server listen address
+- `PIXOO_REST_PORT` - Server port
+- `PIXOO_TEST_CONNECTION_RETRIES` - Connection retry count
+
+#### API Changes
+All endpoint paths remain the same, but request format has changed:
+
+**Old (Flask - form data):**
+```bash
+curl -X POST http://localhost:5000/pixel \
+  -F "x=10" -F "y=10" -F "r=255" -F "g=0" -F "b=0"
+```
+
+**New (FastAPI - JSON):**
+```bash
+curl -X POST http://localhost:5000/draw/pixel \
+  -H "Content-Type: application/json" \
+  -d '{"x": 10, "y": 10, "r": 255, "g": 0, "b": 0, "push_immediately": true}'
+```
+
+#### Running the App
+**Old:**
+```bash
+python app.py
+```
+
+**New:**
+```bash
+uv run pixoo-rest
+# or
+python -m pixoo_rest.app
+```
+
+#### API Documentation
+- Old: Swagger UI at `/` (redirect to `/apidocs`)
+- New: Swagger UI at `/docs`, ReDoc at `/redoc`, root info at `/`
+
+### Removed
+- Flask application and all Flask-specific code
+- Flasgger for Swagger generation (now built into FastAPI)
+- Custom Swagger spec YAML files (FastAPI generates OpenAPI automatically)
+- Legacy passthrough endpoint format
+- `SCRIPT_NAME` environment variable support (use reverse proxy path rewriting instead)
+
 ## [1.7.0] - 2025-11-09
 
 ### Added
