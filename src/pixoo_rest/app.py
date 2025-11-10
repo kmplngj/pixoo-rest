@@ -67,7 +67,7 @@ async def root():
     """Root endpoint with API information."""
     return {
         "name": "Pixoo REST API",
-        "version": "2.0.0",
+        "version": __version__,
         "description": "Modern async FastAPI application for Divoom Pixoo devices",
         "docs": "/docs",
         "redoc": "/redoc",
