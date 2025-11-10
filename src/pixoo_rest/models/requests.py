@@ -116,6 +116,54 @@ class SendImageUrlRequest(BaseModel):
     skip_first_frame: bool = Field(default=False, description="Skip first frame of GIF")
 
 
+# Download endpoints
+class DownloadGifRequest(BaseModel):
+    """Request model for downloading and displaying a GIF."""
+
+    url: str = Field(..., description="URL of the GIF to download")
+    speed: int = Field(default=100, ge=1, description="Animation speed")
+    skip_first_frame: bool = Field(default=False, description="Skip first frame")
+    timeout: int = Field(default=30, ge=1, description="Download timeout in seconds")
+    ssl_verify: bool = Field(default=True, description="Verify SSL certificates")
+
+
+class DownloadImageRequest(BaseModel):
+    """Request model for downloading and displaying an image."""
+
+    url: str = Field(..., description="URL of the image to download")
+    x: int = Field(default=0, description="X coordinate")
+    y: int = Field(default=0, description="Y coordinate")
+    timeout: int = Field(default=30, ge=1, description="Download timeout in seconds")
+    ssl_verify: bool = Field(default=True, description="Verify SSL certificates")
+    push_immediately: bool = Field(default=True, description="Push changes immediately")
+
+
+class DownloadTextRequest(BaseModel):
+    """Request model for text that updates from URL."""
+
+    url: str = Field(..., description="URL that returns text content")
+    id: int = Field(default=1, description="Text identifier")
+    x: int = Field(default=0, description="X coordinate")
+    y: int = Field(default=0, description="Y coordinate")
+    r: int = Field(..., ge=0, le=255, description="Red component")
+    g: int = Field(..., ge=0, le=255, description="Green component")
+    b: int = Field(..., ge=0, le=255, description="Blue component")
+    scroll_direction: int = Field(default=0, description="Scroll direction")
+    scroll_speed: int = Field(default=100, description="Scroll speed")
+    text_width: int = Field(default=64, description="Text width")
+    text_height: int = Field(default=64, description="Text height")
+    update_interval: int = Field(default=60, description="Update interval in seconds")
+    horizontal_alignment: int = Field(default=1, description="Horizontal alignment (1=left, 2=center, 3=right)")
+
+
+# Image/GIF upload endpoints
+class SendGifRequest(BaseModel):
+    """Request model for sending a GIF."""
+
+    speed: int = Field(default=100, ge=1, description="Animation speed")
+    skip_first_frame: bool = Field(default=False, description="Skip first frame")
+
+
 # Set endpoints
 class SetBrightnessRequest(BaseModel):
     """Request model for setting brightness."""
