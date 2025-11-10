@@ -5,7 +5,7 @@ services:
     #image: 4ch1m/pixoo-rest:latest
     build: .
     ports:
-      - ${PIXOO_REST_PORT:-5000}:5000
+      - ${PIXOO_REST_PORT:-5000}:${PIXOO_REST_PORT:-5000}
     environment:
       - TZ=${TZ:-Europe/Berlin}
       # Pixoo device settings
@@ -14,11 +14,11 @@ services:
       - PIXOO_DEBUG=${PIXOO_DEBUG:-false}
       # REST API server settings
       - PIXOO_REST_HOST=0.0.0.0
-      - PIXOO_REST_PORT=5000
+      - PIXOO_REST_PORT=${PIXOO_REST_PORT:-5000}
       - PIXOO_TEST_CONNECTION_RETRIES=${PIXOO_TEST_CONNECTION_RETRIES:-3}
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:${PIXOO_REST_PORT:-5000}/health"]
       interval: 30s
       timeout: 3s
       retries: 3
