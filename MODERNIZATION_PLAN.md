@@ -289,18 +289,18 @@ async def draw_pixel(
     return {"success": True}
 ```
 
-#### 5. Replace requests with niquests
+#### 5. Replace requests with httpx
 ```python
 # Old
 import requests
 response = requests.get(url)
 
 # New (sync)
-import niquests
-response = niquests.get(url)
+import httpx
+response = httpx.get(url)
 
 # New (async - preferred)
-async with niquests.AsyncSession() as session:
+async with httpx.AsyncClient() as session:
     response = await session.get(url)
 ```
 
@@ -332,7 +332,7 @@ pixoo-rest/
 │       ├── core/
 │       │   ├── __init__.py
 │       │   ├── pixoo_client.py  # Pixoo device client
-│       │   └── http_client.py   # niquests async client
+│       │   └── http_client.py   # httpx async client
 │       └── utils/
 │           ├── __init__.py
 │           └── helpers.py       # Utility functions
@@ -343,12 +343,12 @@ pixoo-rest/
 
 ### Migration Checklist - Phase 7
 
-- [ ] Install FastAPI, Pydantic Settings, niquests
+- [ ] Install FastAPI, Pydantic Settings, httpx
 - [ ] Create Pydantic Settings class for configuration
 - [ ] Create Pydantic models for request/response validation
 - [ ] Convert Flask routes to FastAPI routers
 - [ ] Implement dependency injection for Pixoo client
-- [ ] Replace requests with niquests AsyncSession
+- [ ] Replace requests with httpx AsyncSession
 - [ ] Update Swagger/OpenAPI documentation
 - [ ] Add async/await throughout codebase
 - [ ] Update tests for FastAPI TestClient
@@ -368,9 +368,9 @@ pixoo-rest/
 - **No more dotenv manual loading** - Automatic via Pydantic Settings
 
 #### Performance Improvements
-- **HTTP/2 support** - Via uvicorn/niquests
+- **HTTP/2 support** - Via uvicorn/httpx
 - **Async I/O** - Better concurrent request handling
-- **Connection pooling** - Efficient resource usage with niquests
+- **Connection pooling** - Efficient resource usage with httpx
 
 ## Implementation Checklist
 
@@ -381,11 +381,11 @@ pixoo-rest/
 - [ ] Phase 5: Update build configuration
 - [ ] Phase 6: Update import paths
 - [ ] **Phase 7: Migrate Flask → FastAPI**
-- [ ] **Phase 7a: Install dependencies (FastAPI, Pydantic Settings, niquests)**
+- [ ] **Phase 7a: Install dependencies (FastAPI, Pydantic Settings, httpx)**
 - [ ] **Phase 7b: Create Pydantic models and settings**
 - [ ] **Phase 7c: Convert Flask routes to FastAPI routers**
 - [ ] **Phase 7d: Implement dependency injection**
-- [ ] **Phase 7e: Replace requests with niquests**
+- [ ] **Phase 7e: Replace requests with httpx**
 - [ ] **Phase 7f: Add async/await support**
 - [ ] **Phase 7g: Update tests for FastAPI**
 - [ ] Update CHANGELOG.md with v2.0.0
@@ -410,7 +410,7 @@ pixoo-rest/
 
 ### Remove
 - `flask` - Replaced by FastAPI
-- `requests` - Replaced by niquests
+- `requests` - Replaced by httpx
 - `flasgger` - FastAPI has built-in OpenAPI
 
 ### Add
@@ -418,7 +418,7 @@ pixoo-rest/
 - `uvicorn[standard]>=0.30.0` - ASGI server with HTTP/2 support
 - `pydantic>=2.9.0` - Data validation (comes with FastAPI)
 - `pydantic-settings>=2.5.0` - Settings management
-- `niquests>=3.9.0` - Modern HTTP client with HTTP/2/3 support
+- `httpx>=0.28.0` - Modern HTTP client with HTTP/2 support
 
 ### Keep
 - `pixoo>=0.9.2` - Pixoo device library
@@ -436,5 +436,5 @@ pixoo-rest/
 - [FastAPI Documentation](https://fastapi.tiangolo.com/) - Official FastAPI docs
 - [FastAPI Best Practices](https://github.com/zhanymkanov/fastapi-best-practices) - Community best practices
 - [Pydantic Settings](https://docs.pydantic.dev/latest/concepts/pydantic_settings/) - Settings management
-- [niquests Documentation](https://niquests.readthedocs.io/) - Modern HTTP client
+- [httpx Documentation](https://encode.io/httpx/) - Modern HTTP client
 - [FastAPI Bigger Applications](https://fastapi.tiangolo.com/tutorial/bigger-applications/) - Application structure
