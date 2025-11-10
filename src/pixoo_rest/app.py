@@ -6,6 +6,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from pixoo import Pixoo
 
+from pixoo_rest.api import draw, send
 from pixoo_rest.core.config import settings
 from pixoo_rest import utils
 
@@ -34,6 +35,10 @@ async def lifespan(app: FastAPI):
     pixoo = Pixoo(settings.pixoo_host, settings.pixoo_screen_size, settings.pixoo_debug)
     print(f"Successfully connected to Pixoo device at {settings.pixoo_host}")
     
+    # Inject pixoo instance into routers
+    draw.set_pixoo_instance(pixoo)
+    send.set_pixoo_instance(pixoo)
+    
     yield
     
     # Shutdown: Cleanup if needed
@@ -47,6 +52,10 @@ app = FastAPI(
     version="2.0.0",
     lifespan=lifespan,
 )
+
+# Include routers
+app.include_router(draw.router)
+app.include_router(send.router)
 
 
 @app.get("/health")
