@@ -32,7 +32,6 @@ dependencies = [
     "uvicorn[standard]>=0.30.0",
     "pydantic>=2.9.0",
     "pydantic-settings>=2.5.0",
-    "niquests>=3.9.1",
     "httpx>=0.28.1",
     "python-multipart>=0.0.20",
 ]
