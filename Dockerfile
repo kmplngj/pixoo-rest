@@ -5,9 +5,12 @@ ENV PYTHONUNBUFFERED=1
 # Install uv
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
 
-# Install system dependencies
+# Install system dependencies (including tkinter for pixoo simulator)
 RUN apt-get update && \
-    apt-get install --yes --no-install-recommends curl && \
+    apt-get install --yes --no-install-recommends \
+        curl \
+        python3-tk \
+        tk-dev && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
