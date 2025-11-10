@@ -22,9 +22,18 @@ async def _send_gif_to_device(
     pixoo: Pixoo,
     gif: Image.Image,
     speed: int,
-    skip_first_frame: bool
+    skip_first_frame: bool,
+    client: httpx.AsyncClient
 ) -> None:
-    """Send a GIF to the Pixoo device."""
+    """Send a GIF to the Pixoo device.
+    
+    Args:
+        pixoo: Pixoo device instance
+        gif: PIL Image object (GIF)
+        speed: Animation speed
+        skip_first_frame: Whether to skip the first frame
+        client: httpx AsyncClient to reuse for requests
+    """
     if not gif.is_animated:
         # Not animated, just draw as static image
         pixoo.draw_image(gif)
@@ -32,11 +41,10 @@ async def _send_gif_to_device(
         return
 
     # Reset GIF state
-    async with httpx.AsyncClient() as client:
-        await client.post(
-            f"http://{pixoo.ip_address}/post",
-            json={"Command": "Draw/ResetHttpGifId"}
-        )
+    await client.post(
+        f"http://{pixoo.ip_address}/post",
+        json={"Command": "Draw/ResetHttpGifId"}
+    )
 
     # Extract frames
     gif_frames = []
@@ -54,20 +62,19 @@ async def _send_gif_to_device(
         gif_frames.append(frame)
 
     # Send each frame
-    async with httpx.AsyncClient() as client:
-        for offset, frame in enumerate(gif_frames):
-            await client.post(
-                f"http://{pixoo.ip_address}/post",
-                json={
-                    "Command": "Draw/SendHttpGif",
-                    "PicID": 1,
-                    "PicNum": len(gif_frames),
-                    "PicOffset": offset,
-                    "PicWidth": frame.width,
-                    "PicSpeed": speed,
-                    "PicData": base64.b64encode(frame.tobytes()).decode("utf-8")
-                }
-            )
+    for offset, frame in enumerate(gif_frames):
+        await client.post(
+            f"http://{pixoo.ip_address}/post",
+            json={
+                "Command": "Draw/SendHttpGif",
+                "PicID": 1,
+                "PicNum": len(gif_frames),
+                "PicOffset": offset,
+                "PicWidth": frame.width,
+                "PicSpeed": speed,
+                "PicData": base64.b64encode(frame.tobytes()).decode("utf-8")
+            }
+        )
 
 
 @router.post("/image")
@@ -90,28 +97,29 @@ async def upload_image(
         skip_first_frame: Skip first frame of GIF (default: False)
     """
     try:
-        # Check if image file was uploaded
-        if image:
-            content = await image.read()
-            img = Image.open(BytesIO(content))
-        # Check if URL was provided
-        elif image_url and image_url.startswith('http'):
-            async with httpx.AsyncClient(timeout=30.0, follow_redirects=True) as client:
+        # Use a shared HTTP client for all requests in this endpoint
+        async with httpx.AsyncClient(timeout=30.0, follow_redirects=True) as client:
+            # Check if image file was uploaded
+            if image:
+                content = await image.read()
+                img = Image.open(BytesIO(content))
+            # Check if URL was provided
+            elif image_url and image_url.startswith('http'):
                 response = await client.get(image_url)
                 response.raise_for_status()
                 img = Image.open(BytesIO(response.content))
-        else:
-            raise HTTPException(
-                status_code=400,
-                detail="Must provide either 'image' file or 'image_url' parameter"
-            )
+            else:
+                raise HTTPException(
+                    status_code=400,
+                    detail="Must provide either 'image' file or 'image_url' parameter"
+                )
 
-        # Handle GIF or static image
-        if img.format == 'GIF':
-            await _send_gif_to_device(pixoo, img, speed, skip_first_frame)
-        else:
-            pixoo.draw_image(img)
-            pixoo.push()
+            # Handle GIF or static image
+            if img.format == 'GIF':
+                await _send_gif_to_device(pixoo, img, speed, skip_first_frame, client)
+            else:
+                pixoo.draw_image(img)
+                pixoo.push()
 
         return SuccessResponse()
     except httpx.HTTPError as e:
@@ -144,7 +152,9 @@ async def upload_gif(
         content = await gif.read()
         img = Image.open(BytesIO(content))
         
-        await _send_gif_to_device(pixoo, img, speed, skip_first_frame)
+        # Use HTTP client for sending GIF frames
+        async with httpx.AsyncClient(timeout=30.0) as client:
+            await _send_gif_to_device(pixoo, img, speed, skip_first_frame, client)
         
         return SuccessResponse()
     except Exception as e:
@@ -174,7 +184,7 @@ async def download_gif(
             response.raise_for_status()
             
             img = Image.open(BytesIO(response.content))
-            await _send_gif_to_device(pixoo, img, request.speed, request.skip_first_frame)
+            await _send_gif_to_device(pixoo, img, request.speed, request.skip_first_frame, client)
         
         return SuccessResponse()
     except httpx.HTTPError as e:
