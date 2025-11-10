@@ -10,6 +10,7 @@ from pixoo_rest import __version__, utils
 from pixoo_rest.api import divoom, download, draw, image, send, set as set_router
 from pixoo_rest.core.config import settings
 from pixoo_rest.dependencies import set_pixoo_instance
+from pixoo_rest.models.requests import HealthCheckResponse, RootResponse
 
 
 @asynccontextmanager
@@ -56,23 +57,23 @@ app.include_router(download.router)
 app.include_router(divoom.router)
 
 
-@app.get("/health")
-async def health_check():
+@app.get("/health", response_model=HealthCheckResponse)
+async def health_check() -> HealthCheckResponse:
     """Health check endpoint."""
-    return {"status": "healthy", "pixoo_host": settings.pixoo_host}
+    return HealthCheckResponse(status="healthy", pixoo_host=settings.pixoo_host)
 
 
-@app.get("/")
-async def root():
+@app.get("/", response_model=RootResponse)
+async def root() -> RootResponse:
     """Root endpoint with API information."""
-    return {
-        "name": "Pixoo REST API",
-        "version": __version__,
-        "description": "Modern async FastAPI application for Divoom Pixoo devices",
-        "docs": "/docs",
-        "redoc": "/redoc",
-        "openapi": "/openapi.json",
-    }
+    return RootResponse(
+        name="Pixoo REST API",
+        version=__version__,
+        description="Modern async FastAPI application for Divoom Pixoo devices",
+        docs="/docs",
+        redoc="/redoc",
+        openapi="/openapi.json",
+    )
 
 
 def main():

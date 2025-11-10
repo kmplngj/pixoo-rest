@@ -191,3 +191,21 @@ class ErrorResponse(BaseModel):
     status: str = Field(default="error", description="Operation status")
     message: str = Field(..., description="Error message")
     detail: str | None = Field(None, description="Detailed error information")
+
+
+class HealthCheckResponse(BaseModel):
+    """Health check endpoint response."""
+
+    status: str = Field(..., description="Health status (healthy/unhealthy)")
+    pixoo_host: str = Field(..., description="Configured Pixoo device hostname/IP")
+
+
+class RootResponse(BaseModel):
+    """Root endpoint response with API information."""
+
+    name: str = Field(..., description="API name")
+    version: str = Field(..., description="API version")
+    description: str = Field(..., description="API description")
+    docs: str = Field(..., description="OpenAPI documentation URL (Swagger UI)")
+    redoc: str = Field(..., description="OpenAPI documentation URL (ReDoc)")
+    openapi: str = Field(..., description="OpenAPI JSON schema URL")
