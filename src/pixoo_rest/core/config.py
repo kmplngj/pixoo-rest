@@ -19,7 +19,7 @@ class Settings(BaseSettings):
     pixoo_screen_size: int = Field(default=64, description="Pixoo screen size (16, 32, or 64)")
     pixoo_debug: bool = Field(default=False, description="Enable Pixoo debug mode")
     pixoo_test_connection_retries: int = Field(
-        default=2147483647,  # sys.maxsize equivalent
+        default=3,
         description="Number of connection retries before failing",
     )
 
