@@ -4,6 +4,12 @@ import httpx
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
 
+from pixoo_rest.models.requests import (
+    DivoomDialListResponse,
+    DivoomDialTypesResponse,
+    DivoomLanDevicesResponse,
+)
+
 router = APIRouter(prefix="/divoom", tags=["divoom"])
 
 DIVOOM_API_URL = "https://app.divoom-gz.com"
@@ -16,8 +22,8 @@ class GetDialListRequest(BaseModel):
     page_number: int = Field(default=1, ge=1, description="Page number")
 
 
-@router.post("/device/lan")
-async def get_lan_devices() -> dict:
+@router.post("/device/lan", response_model=DivoomLanDevicesResponse)
+async def get_lan_devices() -> DivoomLanDevicesResponse:
     """Get Divoom devices on the local network.
     
     Returns information about Divoom devices available on the same LAN.
@@ -27,7 +33,7 @@ async def get_lan_devices() -> dict:
             response = await client.post(
                 f"{DIVOOM_API_URL}/Device/ReturnSameLANDevice"
             )
-            return response.json()
+            return DivoomLanDevicesResponse(**response.json())
     except httpx.HTTPError as e:
         raise HTTPException(
             status_code=400,
@@ -40,8 +46,8 @@ async def get_lan_devices() -> dict:
         ) from e
 
 
-@router.post("/channel/dial/types")
-async def get_dial_types() -> dict:
+@router.post("/channel/dial/types", response_model=DivoomDialTypesResponse)
+async def get_dial_types() -> DivoomDialTypesResponse:
     """Get available dial types from Divoom.
     
     Returns the list of available clock/dial types.
@@ -51,7 +57,7 @@ async def get_dial_types() -> dict:
             response = await client.post(
                 f"{DIVOOM_API_URL}/Channel/GetDialType"
             )
-            return response.json()
+            return DivoomDialTypesResponse(**response.json())
     except httpx.HTTPError as e:
         raise HTTPException(
             status_code=400,
@@ -64,8 +70,8 @@ async def get_dial_types() -> dict:
         ) from e
 
 
-@router.post("/channel/dial/list")
-async def get_dial_list(request: GetDialListRequest) -> dict:
+@router.post("/channel/dial/list", response_model=DivoomDialListResponse)
+async def get_dial_list(request: GetDialListRequest) -> DivoomDialListResponse:
     """Get list of available dials/clocks from Divoom.
     
     Returns a paginated list of available clock faces for the specified type.
@@ -82,7 +88,7 @@ async def get_dial_list(request: GetDialListRequest) -> dict:
                     "Page": request.page_number
                 }
             )
-            return response.json()
+            return DivoomDialListResponse(**response.json())
     except httpx.HTTPError as e:
         raise HTTPException(
             status_code=400,

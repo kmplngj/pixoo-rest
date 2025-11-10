@@ -209,3 +209,47 @@ class RootResponse(BaseModel):
     docs: str = Field(..., description="OpenAPI documentation URL (Swagger UI)")
     redoc: str = Field(..., description="OpenAPI documentation URL (ReDoc)")
     openapi: str = Field(..., description="OpenAPI JSON schema URL")
+
+
+# Divoom API response models
+class DivoomApiResponse(BaseModel):
+    """Base model for Divoom API responses.
+    
+    Note: Divoom API responses are dynamic and may contain additional fields.
+    This model accepts extra fields to handle the flexible API structure.
+    """
+
+    model_config = {"extra": "allow"}
+
+    error_code: int = Field(..., alias="error_code", description="Divoom API error code (0 = success)")
+
+
+class DivoomLanDevicesResponse(DivoomApiResponse):
+    """Response from Divoom LAN device discovery endpoint."""
+
+    device_list: list[dict] = Field(
+        default_factory=list,
+        alias="DeviceList",
+        description="List of discovered Divoom devices on LAN"
+    )
+
+
+class DivoomDialTypesResponse(DivoomApiResponse):
+    """Response from Divoom dial types endpoint."""
+
+    dial_type_list: list[dict] = Field(
+        default_factory=list,
+        alias="DialTypeList",
+        description="List of available dial/clock types"
+    )
+
+
+class DivoomDialListResponse(DivoomApiResponse):
+    """Response from Divoom dial list endpoint."""
+
+    dial_list: list[dict] = Field(
+        default_factory=list,
+        alias="DialList",
+        description="List of available dials/clocks for the specified type"
+    )
+    total_num: int = Field(default=0, alias="TotalNum", description="Total number of available dials")
