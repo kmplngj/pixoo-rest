@@ -41,4 +41,5 @@ HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
     CMD curl --fail --silent http://localhost:${PIXOO_REST_PORT}/health || exit 1
 
 # Run using uvicorn (FastAPI's ASGI server)
-CMD ["uvicorn", "pixoo_rest.app:app", "--host", "0.0.0.0", "--port", "5000"]
+# Use shell form to allow environment variable expansion
+CMD uvicorn pixoo_rest.app:app --host ${PIXOO_REST_HOST} --port ${PIXOO_REST_PORT}
