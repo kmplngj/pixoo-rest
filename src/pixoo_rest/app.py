@@ -6,10 +6,10 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from pixoo import Pixoo
 
+from pixoo_rest import __version__, utils
 from pixoo_rest.api import divoom, download, draw, image, send, set as set_router
 from pixoo_rest.core.config import settings
 from pixoo_rest.dependencies import set_pixoo_instance
-from pixoo_rest import utils
 
 
 @asynccontextmanager
@@ -43,7 +43,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(
     title="Pixoo REST API",
     description="A modern async RESTful API to interact with Wi-Fi enabled Divoom Pixoo devices",
-    version="2.0.0",
+    version=__version__,
     lifespan=lifespan,
 )
 

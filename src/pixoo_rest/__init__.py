@@ -1,3 +1,9 @@
 """Pixoo REST API - Modern FastAPI implementation."""
 
-__version__ = "1.7.0"
+try:
+    # Try to get version from package metadata (when installed)
+    from importlib.metadata import version
+    __version__ = version("pixoo-rest")
+except Exception:
+    # Fallback for development mode
+    __version__ = "2.0.0"
