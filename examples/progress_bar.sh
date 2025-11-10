@@ -10,22 +10,26 @@ MAX_SCREEN_VALUE_Y=$((SCREEN_SIZE_Y - 1))
 
 function progress_bar() {
 
+  # Fill screen with black
   curl -s -X POST \
-    -d "r=0&g=0&b=0&push_immediately=false" \
-    "${PIXOO_REST_URL}/fill"
+    -H "Content-Type: application/json" \
+    -d '{"r":0,"g":0,"b":0,"push_immediately":false}' \
+    "${PIXOO_REST_URL}/draw/fill"
 
-  TOP_LEFT_X="top_left_x=0"
-  TOP_LEFT_Y="top_left_y=$(printf "%.0f\n" "$((MAX_SCREEN_VALUE_Y - (SCREEN_SIZE_Y * ${1} / 100)))")"
-  BOTTOM_RIGHT_X="bottom_right_x=${MAX_SCREEN_VALUE_X}"
-  BOTTOM_RIGHT_Y="bottom_right_y=${MAX_SCREEN_VALUE_Y}"
+  # Calculate progress bar dimensions
+  local TOP_LEFT_Y=$(printf "%.0f\n" "$((MAX_SCREEN_VALUE_Y - (SCREEN_SIZE_Y * ${1} / 100)))")
 
+  # Draw red progress rectangle
   curl -s -X POST \
-    -d "${TOP_LEFT_X}&${TOP_LEFT_Y}&${BOTTOM_RIGHT_X}&${BOTTOM_RIGHT_Y}&r=255&g=0&b=0&push_immediately=false" \
-    "${PIXOO_REST_URL}/rectangle"
+    -H "Content-Type: application/json" \
+    -d "{\"top_left_x\":0,\"top_left_y\":${TOP_LEFT_Y},\"bottom_right_x\":${MAX_SCREEN_VALUE_X},\"bottom_right_y\":${MAX_SCREEN_VALUE_Y},\"r\":255,\"g\":0,\"b\":0,\"push_immediately\":false}" \
+    "${PIXOO_REST_URL}/draw/rectangle"
 
+  # Draw percentage text
   curl -s -X POST \
-    -d "text=${1}%20%25&x=0&y=0&r=255&g=255&b=255&push_immediately=true" \
-    "${PIXOO_REST_URL}/text"
+    -H "Content-Type: application/json" \
+    -d "{\"text\":\"${1} %\",\"x\":0,\"y\":0,\"r\":255,\"g\":255,\"b\":255,\"push_immediately\":true}" \
+    "${PIXOO_REST_URL}/draw/text"
 
 }
 

@@ -2,33 +2,41 @@
 
 PIXOO_REST_URL="http://localhost:5000"
 
-START_PARAMS="start_x=32&start_y=32"
-
 function swipe() {
-  local COLOR_PARAMS="r=${1}&g=${2}&b=${3}"
+  local R=${1}
+  local G=${2}
+  local B=${3}
 
+  # Swipe from center (32,32) to right edge
   for i in {-1..64}; do
     curl -s -X POST \
-      -d "${START_PARAMS}&stop_x=${i}&stop_y=-1&${COLOR_PARAMS}&push_immediately=true" \
-      "${PIXOO_REST_URL}/line"
+      -H "Content-Type: application/json" \
+      -d "{\"start_x\":32,\"start_y\":32,\"stop_x\":${i},\"stop_y\":-1,\"r\":${R},\"g\":${G},\"b\":${B},\"push_immediately\":true}" \
+      "${PIXOO_REST_URL}/draw/line"
   done
 
+  # Swipe to bottom edge
   for i in {0..64}; do
     curl -s -X POST \
-      -d "${START_PARAMS}&stop_x=64&stop_y=${i}&${COLOR_PARAMS}&push_immediately=true" \
-      "${PIXOO_REST_URL}/line"
+      -H "Content-Type: application/json" \
+      -d "{\"start_x\":32,\"start_y\":32,\"stop_x\":64,\"stop_y\":${i},\"r\":${R},\"g\":${G},\"b\":${B},\"push_immediately\":true}" \
+      "${PIXOO_REST_URL}/draw/line"
   done
 
+  # Swipe to left edge
   for i in {63..-1}; do
     curl -s -X POST \
-      -d "${START_PARAMS}&stop_x=${i}&stop_y=64&${COLOR_PARAMS}&push_immediately=true" \
-      "${PIXOO_REST_URL}/line"
+      -H "Content-Type: application/json" \
+      -d "{\"start_x\":32,\"start_y\":32,\"stop_x\":${i},\"stop_y\":64,\"r\":${R},\"g\":${G},\"b\":${B},\"push_immediately\":true}" \
+      "${PIXOO_REST_URL}/draw/line"
   done
 
+  # Swipe to top edge
   for i in {63..0}; do
     curl -s -X POST \
-      -d "${START_PARAMS}&stop_x=-1&stop_y=${i}&${COLOR_PARAMS}&push_immediately=true" \
-      "${PIXOO_REST_URL}/line"
+      -H "Content-Type: application/json" \
+      -d "{\"start_x\":32,\"start_y\":32,\"stop_x\":-1,\"stop_y\":${i},\"r\":${R},\"g\":${G},\"b\":${B},\"push_immediately\":true}" \
+      "${PIXOO_REST_URL}/draw/line"
   done
 
 }
