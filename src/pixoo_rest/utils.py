@@ -19,11 +19,19 @@ def try_to_request(url: str) -> bool:
         print(f'[{timestamp}] Trying to request "{url}" ... ', end='')
 
         with httpx.Client(timeout=5.0) as client:
-            if client.get(url).status_code == 200:
+            response = client.get(url)
+            if response.status_code == 200:
                 print('OK.')
                 return True
-    except Exception:
-        pass
+    except httpx.TimeoutException:
+        print('FAILED (timeout after 5s).')
+        return False
+    except httpx.HTTPError as e:
+        print(f'FAILED (HTTP error: {e}).')
+        return False
+    except Exception as e:
+        print(f'FAILED (unexpected error: {e}).')
+        return False
 
     print('FAILED.')
     return False
