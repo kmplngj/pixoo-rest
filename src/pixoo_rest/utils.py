@@ -2,7 +2,7 @@
 
 from datetime import datetime
 
-import requests
+import httpx
 
 
 def try_to_request(url: str) -> bool:
@@ -18,9 +18,10 @@ def try_to_request(url: str) -> bool:
         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         print(f'[{timestamp}] Trying to request "{url}" ... ', end='')
 
-        if requests.get(url, timeout=5).status_code == 200:
-            print('OK.')
-            return True
+        with httpx.Client(timeout=5.0) as client:
+            if client.get(url).status_code == 200:
+                print('OK.')
+                return True
     except Exception:
         pass
 
