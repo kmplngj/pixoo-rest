@@ -8,18 +8,13 @@ from pixoo import Pixoo
 
 from pixoo_rest.api import draw, send
 from pixoo_rest.core.config import settings
+from pixoo_rest.dependencies import set_pixoo_instance
 from pixoo_rest import utils
-
-
-# Global Pixoo device instance
-pixoo: Pixoo | None = None
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Application lifespan manager - handles startup and shutdown."""
-    global pixoo
-    
     # Startup: Initialize Pixoo device
     print(f"Connecting to Pixoo device at {settings.pixoo_host}...")
     
@@ -35,9 +30,8 @@ async def lifespan(app: FastAPI):
     pixoo = Pixoo(settings.pixoo_host, settings.pixoo_screen_size, settings.pixoo_debug)
     print(f"Successfully connected to Pixoo device at {settings.pixoo_host}")
     
-    # Inject pixoo instance into routers
-    draw.set_pixoo_instance(pixoo)
-    send.set_pixoo_instance(pixoo)
+    # Set the global pixoo instance
+    set_pixoo_instance(pixoo)
     
     yield
     
